@@ -71,32 +71,7 @@ cd FitnessCenter.UserUI  && dotnet run   # http://localhost:5002
 
 ---
 
-## 📁 Структура проекта
 
-```
-FitnessCenter/
-├── 📂 FitnessCenter.API/          # ASP.NET Core Web API
-│   ├── Controllers/               # CRUD контроллеры (4 сущности)
-│   ├── Models/                    # Модели + DTO
-│   ├── Data/                      # AppDbContext + Seeding
-│   ├── Services/                  # Redis кэш-сервис
-│   └── Dockerfile
-│
-├── 📂 FitnessCenter.AdminUI/      # Веб-панель администратора
-├── 📂 FitnessCenter.UserUI/       # Личный кабинет клиента
-├── 📂 FitnessCenter.Client/       # Консольный клиент (делегаты)
-├── 📂 FitnessCenter.Tests/        # xUnit тесты
-│
-├── 📂 nginx/                      # Конфигурация обратного прокси
-├── 📂 prometheus/                 # Конфигурация сбора метрик
-├── 📂 grafana/                    # Дашборды и provisioning
-├── 📂 .github/workflows/          # CI/CD пайплайн
-│
-├── docker-compose.yml
-└── start.html                     # Страница выбора роли
-```
-
----
 
 ## 🔌 API Endpoints
 
