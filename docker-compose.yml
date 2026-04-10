@@ -1,0 +1,88 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: fitnessdb
+      POSTGRES_USER: fitness
+      POSTGRES_PASSWORD: fitness123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fitness -d fitnessdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fitness_net
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - fitness_net
+
+  api:
+    build:
+      context: ./FitnessCenter.API
+      dockerfile: Dockerfile
+    environment:
+      CONNECTION_STRING: "Host=postgres;Port=5432;Database=fitnessdb;Username=fitness;Password=fitness123"
+      REDIS_CONNECTION: "redis:6379"
+      ASPNETCORE_ENVIRONMENT: "Development"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - fitness_net
+    expose:
+      - "8080"
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - api
+    networks:
+      - fitness_net
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    networks:
+      - fitness_net
+
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - prometheus
+    networks:
+      - fitness_net
+
+volumes:
+  postgres_data:
+  grafana_data:
+
+networks:
+  fitness_net:
+    driver: bridge

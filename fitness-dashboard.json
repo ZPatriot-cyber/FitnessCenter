@@ -1,0 +1,28 @@
+{
+  "title": "FitnessCenter API Dashboard",
+  "uid": "fitness-api",
+  "panels": [
+    {
+      "id": 1, "type": "stat", "title": "HTTP Requests/sec",
+      "targets": [{"expr": "rate(http_requests_received_total[1m])", "legendFormat": "req/s"}],
+      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4}
+    },
+    {
+      "id": 2, "type": "stat", "title": "Avg Response Time (ms)",
+      "targets": [{"expr": "rate(http_request_duration_seconds_sum[5m]) / rate(http_request_duration_seconds_count[5m]) * 1000", "legendFormat": "ms"}],
+      "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4}
+    },
+    {
+      "id": 3, "type": "stat", "title": "5xx Errors",
+      "targets": [{"expr": "sum(rate(http_requests_received_total{code=~\"5..\"}[5m]))", "legendFormat": "errors"}],
+      "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4}
+    },
+    {
+      "id": 4, "type": "timeseries", "title": "HTTP Requests Over Time",
+      "targets": [{"expr": "rate(http_requests_received_total[1m])", "legendFormat": "{{method}} {{path}}"}],
+      "gridPos": {"x": 0, "y": 4, "w": 24, "h": 8}
+    }
+  ],
+  "schemaVersion": 36,
+  "version": 1
+}
