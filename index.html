@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitnessCenter — Личный кабинет</title>
+<style>
+  :root {
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --primary-light: rgba(99,102,241,0.15);
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --surface2: #f1f5f9;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --text-muted: #64748b;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* Login page */
+  .login-page {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+  .login-card {
+    background: white; border-radius: 16px; padding: 40px; width: 400px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  }
+  .login-logo { text-align: center; margin-bottom: 28px; }
+  .login-logo .icon { font-size: 48px; margin-bottom: 8px; }
+  .login-logo h1 { font-size: 22px; font-weight: 700; }
+  .login-logo p { color: var(--text-muted); font-size: 14px; }
+  .login-form .form-group { margin-bottom: 16px; }
+  .login-form label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .login-form input, .login-form select {
+    width: 100%; padding: 11px 14px; border: 2px solid var(--border); border-radius: 8px;
+    font-size: 14px; transition: border 0.15s; background: var(--bg);
+  }
+  .login-form input:focus, .login-form select:focus { outline: none; border-color: var(--primary); }
+  .btn-login {
+    width: 100%; padding: 12px; background: var(--primary); color: white; border: none;
+    border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.15s;
+    margin-top: 8px;
+  }
+  .btn-login:hover { background: var(--primary-dark); }
+  .login-hint { text-align: center; margin-top: 16px; font-size: 12px; color: var(--text-muted); }
+
+  /* App layout */
+  .app { display: none; flex-direction: column; min-height: 100vh; }
+  .app.show { display: flex; }
+
+  /* Header */
+  header {
+    background: white; border-bottom: 1px solid var(--border);
+    padding: 0 24px; height: 60px; display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .header-brand { display: flex; align-items: center; gap: 10px; }
+  .brand-icon { width: 36px; height: 36px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .brand-name { font-weight: 700; font-size: 16px; }
+  .header-nav { display: flex; gap: 4px; }
+  .nav-tab {
+    padding: 8px 14px; border: none; background: transparent; cursor: pointer;
+    font-size: 14px; color: var(--text-muted); border-radius: 6px; transition: all 0.15s;
+  }
+  .nav-tab:hover { background: var(--surface2); color: var(--text); }
+  .nav-tab.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+  .header-user { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+  .avatar {
+    width: 34px; height: 34px; background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; font-weight: 600;
+  }
+  .btn-logout { padding: 6px 12px; border: 1px solid var(--border); background: transparent; border-radius: 6px; cursor: pointer; font-size: 13px; color: var(--text-muted); }
+  .btn-logout:hover { background: var(--danger); color: white; border-color: var(--danger); }
+
+  /* Content */
+  .page-content { flex: 1; padding: 24px; max-width: 1000px; margin: 0 auto; width: 100%; }
+
+  /* Section cards */
+  .section { display: none; }
+  .section.active { display: block; }
+  .section-header { margin-bottom: 20px; }
+  .section-header h2 { font-size: 20px; font-weight: 700; }
+  .section-header p { color: var(--text-muted); font-size: 14px; margin-top: 4px; }
+
+  /* Profile card */
+  .profile-hero {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 16px;
+    padding: 28px; color: white; margin-bottom: 20px; display: flex; align-items: center; gap: 20px;
+  }
+  .profile-avatar {
+    width: 72px; height: 72px; background: rgba(255,255,255,0.2); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: 700;
+  }
+  .profile-info h3 { font-size: 22px; font-weight: 700; }
+  .profile-info p { opacity: 0.85; font-size: 14px; margin-top: 4px; }
+  .membership-badge {
+    margin-left: auto; background: rgba(255,255,255,0.2); border-radius: 10px; padding: 12px 18px; text-align: right;
+  }
+  .membership-badge .days { font-size: 28px; font-weight: 700; }
+  .membership-badge .label { font-size: 12px; opacity: 0.8; }
+
+  /* Cards grid */
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+  .card {
+    background: white; border: 1px solid var(--border); border-radius: 12px; padding: 20px;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+  .card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .card-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .card-title { font-weight: 600; font-size: 15px; }
+  .card-sub { font-size: 12px; color: var(--text-muted); }
+  .card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-muted); }
+
+  /* Schedule list */
+  .schedule-item {
+    background: white; border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px;
+    display: flex; align-items: center; gap: 16px; margin-bottom: 10px; transition: all 0.15s;
+  }
+  .schedule-item:hover { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+  .schedule-time { text-align: center; min-width: 56px; }
+  .schedule-time .time { font-size: 15px; font-weight: 700; color: var(--primary); }
+  .schedule-time .date { font-size: 11px; color: var(--text-muted); }
+  .schedule-divider { width: 1px; height: 40px; background: var(--border); }
+  .schedule-info { flex: 1; }
+  .schedule-info .class-name { font-weight: 600; font-size: 14px; }
+  .schedule-info .trainer { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .schedule-info .duration { font-size: 11px; color: var(--text-muted); }
+
+  /* Booking form */
+  .booking-card { background: white; border: 1px solid var(--border); border-radius: 16px; padding: 24px; }
+  .booking-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 20px; }
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; }
+  .form-control {
+    width: 100%; padding: 10px 14px; border: 2px solid var(--border); border-radius: 8px;
+    font-size: 14px; transition: border 0.15s;
+  }
+  .form-control:focus { outline: none; border-color: var(--primary); }
+  .btn-book {
+    background: var(--primary); color: white; border: none; padding: 11px 24px;
+    border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.15s;
+  }
+  .btn-book:hover { background: var(--primary-dark); }
+
+  /* Badges */
+  .badge { padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .badge-purple { background: var(--primary-light); color: var(--primary); }
+  .badge-green { background: rgba(16,185,129,0.1); color: var(--success); }
+  .badge-yellow { background: rgba(245,158,11,0.1); color: var(--warning); }
+  .badge-red { background: rgba(239,68,68,0.1); color: var(--danger); }
+
+  /* Toast */
+  #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000; }
+  .toast {
+    padding: 12px 16px; border-radius: 8px; font-size: 13px; min-width: 250px; margin-top: 8px;
+    animation: slideIn 0.3s ease; background: white; border: 1px solid var(--border);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 8px;
+  }
+  @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+  .empty-state { text-align: center; padding: 48px; color: var(--text-muted); background: white; border-radius: 12px; border: 1px solid var(--border); }
+  .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+  .loading { text-align: center; padding: 32px; color: var(--text-muted); }
+</style>
+</head>
+<body>
+
+<!-- Login Page -->
+<div class="login-page" id="login-page">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="icon">💪</div>
+      <h1>FitnessCenter</h1>
+      <p>Войдите в личный кабинет</p>
+    </div>
+    <div class="login-form">
+      <div class="form-group">
+        <label>Выберите аккаунт</label>
+        <select id="client-select">
+          <option value="">Загрузка клиентов...</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Пароль (демо)</label>
+        <input type="password" value="fitness123" placeholder="fitness123">
+      </div>
+      <button class="btn-login" onclick="doLogin()">🚀 Войти в кабинет</button>
+    </div>
+    <p class="login-hint">Это учебный проект · Вариант 19 · .NET 10</p>
+  </div>
+</div>
+
+<!-- App -->
+<div class="app" id="app">
+  <header>
+    <div class="header-brand">
+      <div class="brand-icon">💪</div>
+      <span class="brand-name">FitnessCenter</span>
+    </div>
+    <nav class="header-nav">
+      <button class="nav-tab active" onclick="showTab('home', this)">🏠 Главная</button>
+      <button class="nav-tab" onclick="showTab('schedule', this)">📅 Мои записи</button>
+      <button class="nav-tab" onclick="showTab('classes', this)">📋 Занятия</button>
+      <button class="nav-tab" onclick="showTab('trainers', this)">🏋️ Тренеры</button>
+      <button class="nav-tab" onclick="showTab('booking', this)">➕ Записаться</button>
+    </nav>
+    <div class="header-user">
+      <div class="avatar" id="user-avatar">?</div>
+      <span id="user-name" style="font-size:14px;font-weight:500"></span>
+      <button class="btn-logout" onclick="logout()">Выйти</button>
+    </div>
+  </header>
+
+  <div class="page-content">
+
+    <!-- Home -->
+    <div class="section active" id="tab-home">
+      <div id="profile-hero-container"></div>
+      <div class="cards-grid" id="home-cards">
+        <div class="loading">Загрузка...</div>
+      </div>
+    </div>
+
+    <!-- My Schedule -->
+    <div class="section" id="tab-schedule">
+      <div class="section-header">
+        <h2>📅 Мои записи</h2>
+        <p>Все ваши занятия в фитнес-центре</p>
+      </div>
+      <div id="my-schedule"><div class="loading">Загрузка...</div></div>
+    </div>
+
+    <!-- Classes -->
+    <div class="section" id="tab-classes">
+      <div class="section-header">
+        <h2>📋 Доступные занятия</h2>
+        <p>Все занятия в нашем центре</p>
+      </div>
+      <div class="cards-grid" id="classes-list"><div class="loading">Загрузка...</div></div>
+    </div>
+
+    <!-- Trainers -->
+    <div class="section" id="tab-trainers">
+      <div class="section-header">
+        <h2>🏋️ Наши тренеры</h2>
+        <p>Профессионалы своего дела</p>
+      </div>
+      <div class="cards-grid" id="trainers-list"><div class="loading">Загрузка...</div></div>
+    </div>
+
+    <!-- Booking -->
+    <div class="section" id="tab-booking">
+      <div class="section-header">
+        <h2>➕ Записаться на занятие</h2>
+        <p>Выберите занятие и удобное время</p>
+      </div>
+      <div class="booking-card">
+        <h3>Новая запись</h3>
+        <div class="form-group">
+          <label>Занятие</label>
+          <select class="form-control" id="book-class"></select>
+        </div>
+        <div class="form-group">
+          <label>Дата и время</label>
+          <input class="form-control" type="datetime-local" id="book-time">
+        </div>
+        <div class="form-group">
+          <label>Заметки (необязательно)</label>
+          <input class="form-control" id="book-notes" placeholder="Особые пожелания...">
+        </div>
+        <button class="btn-book" onclick="bookClass()">📅 Записаться</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+const API = 'http://localhost/api';
+let currentClient = null;
+let allClasses = [];
+let allTrainers = [];
+
+async function apiFetch(path, method = 'GET', body = null) {
+  try {
+    const opts = { method, headers: { 'Content-Type': 'application/json' } };
+    if (body) opts.body = JSON.stringify(body);
+    const res = await fetch(`${API}/${path}`, opts);
+    if (res.status === 204 || method === 'DELETE') return true;
+    return await res.json();
+  } catch (e) {
+    toast('Ошибка подключения к API: ' + e.message, '❌');
+    return null;
+  }
+}
+
+function toast(msg, icon = '✓') {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.innerHTML = `<span>${icon}</span> ${msg}`;
+  document.getElementById('toast-container').appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+// ── Load clients for login selector ──
+async function loadClientsList() {
+  const clients = await apiFetch('clients');
+  const sel = document.getElementById('client-select');
+  if (!clients || clients.length === 0) {
+    sel.innerHTML = '<option>Нет клиентов в системе</option>';
+    return;
+  }
+  sel.innerHTML = clients.map(c => `<option value="${c.id}" data-client='${JSON.stringify(c)}'>${c.firstName} ${c.lastName} (${c.email})</option>`).join('');
+}
+
+function doLogin() {
+  const sel = document.getElementById('client-select');
+  const opt = sel.selectedOptions[0];
+  if (!opt?.dataset?.client) { toast('Выберите клиента', '⚠️'); return; }
+  currentClient = JSON.parse(opt.dataset.client);
+
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('app').classList.add('show');
+
+  const initials = (currentClient.firstName[0] + currentClient.lastName[0]).toUpperCase();
+  document.getElementById('user-avatar').textContent = initials;
+  document.getElementById('user-name').textContent = `${currentClient.firstName} ${currentClient.lastName}`;
+
+  loadApp();
+}
+
+function logout() {
+  currentClient = null;
+  document.getElementById('app').classList.remove('show');
+  document.getElementById('login-page').style.display = 'flex';
+}
+
+async function loadApp() {
+  const [classes, trainers] = await Promise.all([
+    apiFetch('fitnessclasses'),
+    apiFetch('trainers'),
+  ]);
+  allClasses = classes || [];
+  allTrainers = trainers || [];
+
+  renderProfileHero();
+  renderHomeCards();
+  renderClasses();
+  renderTrainers();
+  renderBookingForm();
+  await loadMySchedule();
+}
+
+function renderProfileHero() {
+  const c = currentClient;
+  const end = new Date(c.membershipEnd);
+  const days = Math.max(0, Math.round((end - Date.now()) / 86400000));
+  const initials = (c.firstName[0] + c.lastName[0]).toUpperCase();
+  document.getElementById('profile-hero-container').innerHTML = `
+    <div class="profile-hero">
+      <div class="profile-avatar">${initials}</div>
+      <div class="profile-info">
+        <h3>${c.firstName} ${c.lastName}</h3>
+        <p>${c.email}</p>
+        <p>📞 ${c.phone}</p>
+      </div>
+      <div class="membership-badge">
+        <div class="days">${days}</div>
+        <div class="label">дней членства</div>
+        <div style="font-size:11px;margin-top:4px;opacity:0.7">до ${end.toLocaleDateString('ru')}</div>
+      </div>
+    </div>`;
+}
+
+function renderHomeCards() {
+  const cards = [
+    { icon: '📋', bg: '#ede9fe', label: 'Занятий доступно', value: allClasses.length, hint: 'разного уровня' },
+    { icon: '🏋️', bg: '#dcfce7', label: 'Тренеров', value: allTrainers.length, hint: 'профессионалов' },
+    { icon: '📅', bg: '#dbeafe', label: 'Запись открыта', value: '24/7', hint: 'онлайн бронирование' },
+  ];
+  document.getElementById('home-cards').innerHTML = cards.map(c => `
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:${c.bg}">${c.icon}</div>
+        <div><div class="card-title" style="font-size:26px;font-weight:700">${c.value}</div></div>
+      </div>
+      <div style="font-weight:600;font-size:14px">${c.label}</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px">${c.hint}</div>
+    </div>`).join('');
+}
+
+async function loadMySchedule() {
+  const schedules = await apiFetch(`schedules/client/${currentClient.id}`);
+  const container = document.getElementById('my-schedule');
+  if (!schedules || schedules.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="icon">📅</div><p>У вас пока нет записей</p><button class="btn-book" style="margin-top:12px" onclick="showTab('booking', document.querySelectorAll('.nav-tab')[4])">Записаться на занятие</button></div>`;
+    return;
+  }
+
+  const diffBadge = d => {
+    const m = {'Beginner':'badge-green','Intermediate':'badge-yellow','Advanced':'badge-red'};
+    const l = {'Beginner':'Начинающий','Intermediate':'Средний','Advanced':'Продвинутый'};
+    return `<span class="badge ${m[d]||'badge-purple'}">${l[d]||d}</span>`;
+  };
+  const statusBadge = s => {
+    const m = {'Registered':'badge-purple','Completed':'badge-green','Cancelled':'badge-red'};
+    const l = {'Registered':'Записан','Completed':'Завершено','Cancelled':'Отменено'};
+    return `<span class="badge ${m[s]||'badge-purple'}">${l[s]||s}</span>`;
+  };
+
+  container.innerHTML = schedules.map(s => {
+    const dt = new Date(s.startTime);
+    const cls = allClasses.find(c => c.id === s.classId);
+    return `
+      <div class="schedule-item">
+        <div class="schedule-time">
+          <div class="time">${dt.toLocaleTimeString('ru', {hour:'2-digit',minute:'2-digit'})}</div>
+          <div class="date">${dt.toLocaleDateString('ru',{day:'numeric',month:'short'})}</div>
+        </div>
+        <div class="schedule-divider"></div>
+        <div class="schedule-info">
+          <div class="class-name">${s.className || '—'}</div>
+          ${cls ? `<div class="duration">⏱ ${cls.durationMinutes} мин · ${diffBadge(cls.difficulty)}</div>` : ''}
+          ${s.notes ? `<div class="trainer">💬 ${s.notes}</div>` : ''}
+        </div>
+        ${statusBadge(s.status)}
+        ${s.status === 'Registered' ? `<button onclick="cancelBooking(${s.id})" style="padding:6px 12px;background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.3);border-radius:6px;cursor:pointer;font-size:12px;">Отменить</button>` : ''}
+      </div>`;
+  }).join('');
+}
+
+async function cancelBooking(id) {
+  if (!confirm('Отменить запись?')) return;
+  const ok = await apiFetch(`schedules/${id}`, 'DELETE');
+  if (ok) { toast('Запись отменена', '✓'); loadMySchedule(); }
+}
+
+function renderClasses() {
+  const diff = { 'Beginner': ['#dcfce7', '🌱'], 'Intermediate': ['#fef9c3', '⚡'], 'Advanced': ['#fee2e2', '🔥'] };
+  document.getElementById('classes-list').innerHTML = allClasses.map(c => {
+    const trainer = allTrainers.find(t => t.id === c.trainerId);
+    const [bg, icon] = diff[c.difficulty] || ['#f0f4ff', '📋'];
+    return `
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon" style="background:${bg}">${icon}</div>
+          <div><div class="card-title">${c.name}</div><div class="card-sub">${c.durationMinutes} мин</div></div>
+        </div>
+        <p style="font-size:13px;color:var(--text-muted);line-height:1.5">${c.description}</p>
+        <div class="card-footer">
+          <span>👤 ${trainer ? trainer.firstName + ' ' + trainer.lastName : '—'}</span>
+          <span>Макс. ${c.maxParticipants} чел.</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderTrainers() {
+  document.getElementById('trainers-list').innerHTML = allTrainers.map(t => `
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:#ede9fe;font-size:22px;font-weight:700">${t.firstName[0]}${t.lastName[0]}</div>
+        <div><div class="card-title">${t.firstName} ${t.lastName}</div><div class="card-sub">${t.specialization}</div></div>
+      </div>
+      <div style="font-size:13px;color:var(--text-muted)">📧 ${t.email}</div>
+      <div class="card-footer">
+        <span>📞 ${t.phone}</span>
+        <span class="badge badge-purple">Опыт: ${t.experienceYears} лет</span>
+      </div>
+    </div>`).join('');
+}
+
+function renderBookingForm() {
+  document.getElementById('book-class').innerHTML = allClasses.map(c => `<option value="${c.id}">${c.name} (${c.durationMinutes} мин)</option>`).join('');
+  const now = new Date();
+  now.setMinutes(0, 0, 0);
+  now.setHours(now.getHours() + 1);
+  document.getElementById('book-time').value = now.toISOString().slice(0,16);
+}
+
+async function bookClass() {
+  const classId = parseInt(document.getElementById('book-class').value);
+  const startTime = document.getElementById('book-time').value;
+  const notes = document.getElementById('book-notes').value || null;
+  if (!startTime) { toast('Выберите дату и время', '⚠️'); return; }
+  const utcTime = new Date(startTime).toISOString();
+  const res = await apiFetch('schedules', 'POST', { classId, clientId: currentClient.id, startTime: utcTime, notes });
+  if (res) {
+    toast('Запись оформлена! Ждём вас 💪');
+    document.getElementById('book-notes').value = '';
+    await loadMySchedule();
+  }
+}
+
+function showTab(name, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+  if (name === 'schedule') loadMySchedule();
+}
+
+// Init
+loadClientsList();
+</script>
+</body>
+</html>
