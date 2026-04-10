@@ -19,10 +19,10 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Restore dependencies
-        run: dotnet restore FitnessCenter.sln
+        run: dotnet restore
 
       - name: Build
-        run: dotnet build FitnessCenter.sln --no-restore -c Release
+        run: dotnet build --no-restore -c Release
 
       - name: Run tests
-        run: dotnet test FitnessCenter.Tests/FitnessCenter.Tests.csproj --no-build -c Release --verbosity normal
+        run: dotnet test --no-build -c Release --verbosity normal
